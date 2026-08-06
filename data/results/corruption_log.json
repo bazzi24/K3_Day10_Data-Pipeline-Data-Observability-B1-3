@@ -1,0 +1,29 @@
+{
+  "actions": [
+    {
+      "action": "drop_latest_rows",
+      "count": 3
+    },
+    {
+      "action": "blank_summary",
+      "count": 3
+    },
+    {
+      "action": "inject_noise",
+      "count": 3
+    },
+    {
+      "action": "truncate_title",
+      "count": 3
+    },
+    {
+      "action": "stale_published_date",
+      "count": 3
+    },
+    {
+      "action": "add_duplicate_rows",
+      "count": 2
+    }
+  ],
+  "row_count": 23
+}
