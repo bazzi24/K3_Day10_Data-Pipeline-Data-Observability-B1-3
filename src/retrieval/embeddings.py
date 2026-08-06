@@ -8,7 +8,12 @@ from langchain_openai import OpenAIEmbeddings
 
 @lru_cache(maxsize=4)
 def _load_model(model_name: str, api_key: str) -> OpenAIEmbeddings:
-    return OpenAIEmbeddings(model=model_name, api_key=api_key)
+    return OpenAIEmbeddings(
+        model=model_name,
+        api_key=api_key,
+        tiktoken_enabled=False,
+        check_embedding_ctx_length=False,
+    )
 
 
 class MiniLMEmbeddings(Embeddings):
