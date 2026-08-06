@@ -16,8 +16,8 @@
 | `mean_judge_score` | 2.2000 | 1.0000 | 2.2000 | -1.2000 | 1.2000 |
 
 A negative `Corrupted - baseline` value indicates degradation for these higher-is-better metrics. A positive
-`Repaired - corrupted` value indicates recovery. Exact recovery is not guaranteed when ranking contains ties or
-when an external judge is non-deterministic; the answer artifacts should be inspected before drawing conclusions.
+`Repaired - corrupted` value indicates recovery. In this artifact, the repaired metrics return exactly to the
+baseline values on the tracked aggregate scores.
 
 ## Corrupted data quality
 

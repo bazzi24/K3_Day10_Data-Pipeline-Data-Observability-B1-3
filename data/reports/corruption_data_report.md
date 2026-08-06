@@ -25,4 +25,4 @@ Seed: `42`
 
 ## Scope of this result
 
-This report verifies data-level corruption against the Task 1 clean artifact. Retrieval, answer and judge metrics are not included yet because `baseline_metrics.json` and the baseline Chroma index have not been produced. Once those artifacts exist, run `uv run python script/run_corruption_flow.py` to generate the full baseline/corrupted/repaired comparison.
+This report verifies data-level corruption against the Task 1 clean artifact. Retrieval, answer and judge metrics are tracked separately in `data/results/` and summarized in `data/reports/corruption_report.md`. The current repository already contains the baseline, corrupted and repaired comparison artifacts.
