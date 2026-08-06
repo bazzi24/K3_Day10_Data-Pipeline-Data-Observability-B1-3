@@ -1,0 +1,29 @@
+{
+  "report_name": "corrupted_quality",
+  "status": "FAIL",
+  "total_rows": 22,
+  "metrics": {
+    "null_paper_ids": 0,
+    "duplicate_paper_ids": 2,
+    "null_titles": 0,
+    "null_summaries": 3,
+    "short_summaries": 3,
+    "stale_rows": 4,
+    "freshness_threshold_days": 180
+  },
+  "checks": {
+    "row_count_sufficient": true,
+    "paper_id_no_nulls": true,
+    "paper_id_unique": false,
+    "title_no_nulls": true,
+    "summary_no_nulls": false,
+    "summary_adequate_length": false,
+    "freshness_valid": false
+  },
+  "failed_rules": [
+    "paper_id_unique",
+    "summary_no_nulls",
+    "summary_adequate_length",
+    "freshness_valid"
+  ]
+}
