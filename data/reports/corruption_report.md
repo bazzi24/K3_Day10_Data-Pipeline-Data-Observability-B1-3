@@ -11,9 +11,9 @@
 | Metric | Baseline | Corrupted | Repaired | Corrupted - baseline | Repaired - corrupted |
 | --- | ---: | ---: | ---: | ---: | ---: |
 | `retrieval_hit_rate` | 1.0000 | 0.0000 | 1.0000 | -1.0000 | 1.0000 |
-| `mean_token_f1` | 0.3703 | 0.0403 | 0.3703 | -0.3300 | 0.3300 |
-| `judge_accuracy` | 0.3000 | 0.0000 | 0.3000 | -0.3000 | 0.3000 |
-| `mean_judge_score` | 2.4000 | 1.3000 | 2.4000 | -1.1000 | 1.1000 |
+| `mean_token_f1` | 1.0000 | 0.0386 | 0.3703 | -0.9614 | 0.3317 |
+| `judge_accuracy` | 1.0000 | 0.0000 | 0.3000 | -1.0000 | 0.3000 |
+| `mean_judge_score` | 5.0000 | 1.0000 | 2.2000 | -4.0000 | 1.2000 |
 
 A negative `Corrupted - baseline` value indicates degradation for these higher-is-better metrics. A positive
 `Repaired - corrupted` value indicates recovery. Exact recovery is not guaranteed when ranking contains ties or
