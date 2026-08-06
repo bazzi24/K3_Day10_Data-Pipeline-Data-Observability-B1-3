@@ -64,9 +64,9 @@ Tập test này được giữ nguyên cho baseline, corrupted và repaired đ�
 
 - `data/results/baseline_metrics.json`
   - `retrieval_hit_rate`: `1.0`
-  - `mean_token_f1`: `1.0`
-  - `judge_accuracy`: `1.0`
-  - `mean_judge_score`: `5.0`
+  - `mean_token_f1`: `0.37030291298583984`
+  - `judge_accuracy`: `0.3`
+  - `mean_judge_score`: `2.2`
 - `data/quality/baseline_quality.json`
   - `status`: `PASS`
   - `total_rows`: `24`
@@ -82,9 +82,9 @@ Tập test này được giữ nguyên cho baseline, corrupted và repaired đ�
 
 - `data/results/corrupted_metrics.json`
   - `retrieval_hit_rate`: `0.0`
-  - `mean_token_f1`: `0.04034463815884581`
+  - `mean_token_f1`: `0.0385757070123647`
   - `judge_accuracy`: `0.0`
-  - `mean_judge_score`: `1.3`
+  - `mean_judge_score`: `1.0`
 - `data/quality/corrupted_quality.json`
   - `status`: `FAIL`
   - `total_rows`: `22`
@@ -103,7 +103,7 @@ Tập test này được giữ nguyên cho baseline, corrupted và repaired đ�
   - `retrieval_hit_rate`: `1.0`
   - `mean_token_f1`: `0.37030291298583984`
   - `judge_accuracy`: `0.3`
-  - `mean_judge_score`: `2.4`
+  - `mean_judge_score`: `2.2`
 - `data/quality/repaired_quality.json`
   - `status`: `PASS`
   - `total_rows`: `24`
@@ -138,7 +138,7 @@ Nếu evaluation set không được freeze, hoặc nếu quality/freshness khô
 - **Bối cảnh:** Muốn so sánh baseline, corrupted và repaired một cách công bằng.
 - **Phương án đã chọn:** Dùng chung một test set frozen, giữ nguyên evaluator và `top_k`, chỉ thay dataset state.
 - **Lý do:** Khi test set không đổi, mọi thay đổi của metric mới có ý nghĩa nhân quả với corruption/repair.
-- **Kết quả:** Baseline và repaired đều giữ `retrieval_hit_rate = 1.0`, nhưng `mean_token_f1`, `judge_accuracy` và `mean_judge_score` chỉ phục hồi một phần sau repair, cho thấy quality recovery không đồng nghĩa với full answer recovery.
+- **Kết quả:** Baseline và repaired khớp nhau trên các metric tổng hợp, còn corrupted suy giảm rõ rệt. Điều này cho thấy repair đã đưa hệ thống trở lại baseline của artifact hiện có, dù một số câu hỏi riêng lẻ vẫn có token F1 thấp ngay từ baseline.
 
 ---
 
@@ -153,10 +153,10 @@ Nếu evaluation set không được freeze, hoặc nếu quality/freshness khô
 
 ### Miss
 
-- `q1` trong `data/results/corrupted_answers.json`
-- Câu hỏi: tác giả của paper `SafeRAG`
-- Corrupted trả lời lệch chủ đề và `retrieval_hit = false`
-- Đây là ví dụ cho tác động trực tiếp của corruption lên retrieval/answer quality
+- `q9` trong `data/results/corrupted_answers.json`
+- Câu hỏi: thời điểm xuất bản của paper `JADE-Plus`
+- Baseline và repaired đều trả đúng `2026-07-13`, nhưng corrupted trả `2026-07-02`
+- Đây là ví dụ rõ của corruption làm hỏng retrieval và kéo answer sai lệch
 
 ---
 
@@ -164,8 +164,8 @@ Nếu evaluation set không được freeze, hoặc nếu quality/freshness khô
 
 - Corruption làm quality/freshness xấu đi rõ rệt và kéo metric answer xuống mạnh.
 - Repair đã phục hồi data contract, row count, duplicate, null summary và freshness.
-- `retrieval_hit_rate` phục hồi hoàn toàn, nhưng `mean_token_f1`, `judge_accuracy` và `mean_judge_score` chưa quay lại baseline.
-- Kết luận hợp lệ là: repair thành công ở tầng dữ liệu và retrieval coverage, nhưng chưa phục hồi hoàn toàn ở tầng answer quality.
+- Các metric tổng hợp của repaired quay về đúng baseline artifact hiện có.
+- Kết luận hợp lệ là: repair thành công ở tầng dữ liệu và retrieval coverage, đồng thời khớp lại baseline quan sát được trong run hiện tại.
 - Báo cáo này không chứa `.env`, API key, token hoặc secret.
 
 ---

@@ -25,9 +25,9 @@ Dùng đúng `test_set.json` (10 câu, đã freeze) cho cả 3 trạng thái. Ar
 | Metric | Baseline | Corrupted | Repaired | Δ do corruption | Δ phục hồi |
 | :--- | ---: | ---: | ---: | ---: | ---: |
 | `retrieval_hit_rate` | 1.00 | **0.00** | 1.00 | −1.00 | +1.00 |
-| `mean_token_f1` | 1.00 | 0.040 | 0.370 | −0.960 | +0.330 |
-| `judge_accuracy` | 1.00 | **0.00** | 0.30 | −1.00 | +0.30 |
-| `mean_judge_score` | 5.00 | 1.30 | 2.40 | −3.70 | +1.10 |
+| `mean_token_f1` | 0.370 | 0.039 | 0.370 | −0.332 | +0.332 |
+| `judge_accuracy` | 0.30 | **0.00** | 0.30 | −0.30 | +0.30 |
+| `mean_judge_score` | 2.20 | 1.00 | 2.20 | −1.20 | +1.20 |
 
 Nguồn: `data/results/baseline_metrics.json`, `corrupted_metrics.json`, `repaired_metrics.json`.
 
@@ -35,19 +35,19 @@ Nguồn: `data/results/baseline_metrics.json`, `corrupted_metrics.json`, `repair
 
 ## 2. So sánh answer/metric với baseline — case xấu đi có bằng chứng (Item 2)
 
-**Case chọn: `q1` và `q3` — cùng nhắm paper `10.2118/234689-pa`.**
+**Case chọn: `q3` và `q9` — đều là câu hỏi factual về ngày xuất bản.**
 
-Trong `corruption_log.json`, paper này bị corruption `drop_latest_records` (nằm trong nhóm 4 record mới nhất bị xóa khỏi corrupted dataset). Vì record biến mất khỏi index `papers-corrupted`, retrieval không thể tìm lại nó:
+Trong `corruption_log.json`, các record này nằm trong nhóm bị làm hỏng theo `drop_latest_records` / `stale_publication_date`. Vì record bị xóa hoặc bị đổi ngày trong corrupted dataset, retrieval và answer extraction đều sai:
 
 | Câu | Baseline retrieved | Baseline kết quả | Corrupted retrieved | Corrupted kết quả |
 | :--- | :--- | :--- | :--- | :--- |
-| **q3** (date) | `['10.2118/234689-pa']` | đúng, f1=1.0, score=5 | `['10.63503/…', '10.7717/…', '10.1145/…', '10.20944/…']` — **không có** GT id | trả lời **`2026-04-08`** (GT `2026-08-05`), f1=0.0, score=2, `correct=false` |
-| **q1** (authors) | `['10.2118/234689-pa']` | đúng, f1=1.0, score=5 | GT id vắng mặt trong top-k | trả lời lạc sang nội dung RAG paradigm, f1=0.0, score=1 |
+| **q3** (SafeRAG date) | `['10.2118/234689-pa', '10.1007/s10278-026-02086-9', '10.1088/2515-7647/ae7491', '10.65521/mjret.v13i1s.3023']` | đúng, f1=1.0, score=5 | `['10.1088/2515-7647/ae7491', '10.1088/2515-7647/ae7491', '10.65521/mjret.v13i1s.3023', '10.55041/ijsrem61473']` | trả lời `2016-08-08` thay vì `2026-08-05`, f1=0.0, score=1 |
+| **q9** (JADE-Plus date) | `['10.1007/s10278-026-02086-9', '10.55041/ijsrem61473', '10.63503/j.ijaimd.2026.233', '10.3390/buildings16132637']` | đúng, f1=1.0, score=5 | `['10.3390/buildings16132637', '10.63503/j.ijaimd.2026.233', '10.1038/s41746-026-02944-4', '10.55041/ijsrem61473']` | trả lời `2026-07-02` thay vì `2026-07-13`, f1=0.0, score=1 |
 
 Chuỗi nhân quả có artifact chứng minh:
-`drop_latest_records` (corruption_log) → record bị xóa khỏi `papers-corrupted` → retrieval miss (`retrieval_hit=false` trong `corrupted_answers.json`) → answer sai/ảo giác → `retrieval_hit_rate` và `token_f1` sụt.
+`drop_latest_records` / `stale_publication_date` (corruption_log) → record bị xóa hoặc bị làm stale trong `papers-corrupted` → retrieval miss hoặc answer sai → `retrieval_hit_rate` và `token_f1` sụt.
 
-Đáng chú ý: q3 vẫn trả về một ngày *có định dạng hợp lệ nhưng sai* (`2026-04-08`) — đây là kiểu lỗi nguy hiểm nhất vì trông "hợp lý" nhưng bịa từ context không liên quan. LLM judge bắt đúng (`reasoning`: ngày model đưa ra sớm hơn và không khớp reference).
+Đáng chú ý: q3 và q9 đều trả về một ngày *có định dạng hợp lệ nhưng sai* — đây là kiểu lỗi nguy hiểm nhất vì trông "hợp lý" nhưng bịa từ context không liên quan.
 
 ---
 
@@ -56,7 +56,7 @@ Chuỗi nhân quả có artifact chứng minh:
 Kiểm tra `src/evaluation/metrics.py::_judge_answer`: khi LLM lỗi, nhánh fallback dùng heuristic `token_f1` và **ghi rõ** `reasoning="Fallback heuristic judge used because the LLM evaluator was unavailable."`, đồng thời `correct` chỉ true khi `score>=3` (tức f1≥0.5). Không có đường nào mặc định gán success.
 
 Đối chiếu artifact thực tế: quét toàn bộ `judge.reasoning` trong cả 3 file answers →
-**0/10 câu dùng fallback ở baseline, corrupted, và repaired.** Nghĩa là `judge_accuracy=0.0` của corrupted đến từ LLM judge thật, không phải fallback bị đội lốt thành công. Không có "fake pass".
+**10/10 câu đều ghi fallback heuristic judge**. Nghĩa là judge metric trong artifact này là heuristic judge, không phải một LLM judge ngoài. Corrupted vẫn có `judge_accuracy=0.0` vì heuristic chấm sai theo answer sai, không phải do fallback bị đội lốt thành công. Không có "fake pass".
 
 ---
 
@@ -84,7 +84,7 @@ Report lưu tách biệt, không đè baseline: `data/quality/corrupted_quality.
 
 | Corruption (log) | Count | Quality/Freshness signal đổi | Bằng chứng |
 | :--- | ---: | :--- | :--- |
-| `drop_latest_records` | 4 | `total_rows` 24→22; `latest_published` 2026-08-05→2026-07-02 | freshness report; và trực tiếp gây retrieval miss q1/q3 (mục 2) |
+| `drop_latest_records` | 4 | `total_rows` 24→22; `latest_published` 2026-08-05→2026-07-02 | freshness report; và trực tiếp gây retrieval miss q3/q9 (mục 2) |
 | `blank_summary` | 3 | `null_summaries=3` (FAIL `summary_no_nulls`) và `short_summaries=3` (FAIL `summary_adequate_length`) — cùng 3 record blank (len=0) | corrupted_quality.json |
 | `stale_publication_date` | 3 | `stale_rows` → FAIL `freshness_valid`; `oldest_published`=2016-08-08 | freshness report |
 | `duplicate_rows` | 2 | `duplicate_paper_ids=2` (FAIL `paper_id_unique`) | corrupted_quality.json |
@@ -108,7 +108,7 @@ Kết luận thận trọng: quality checks hiện tại bắt tốt **missing/d
 
 ## 7. Ghi chú về repair (không recover hoàn toàn)
 
-`retrieval_hit_rate` phục hồi 1.00 (bằng baseline), nhưng `token_f1=0.370`, `judge_accuracy=0.30`, `judge_score=2.40` **chưa** về mức baseline. Retrieval đã đúng trở lại (record được rebuild từ raw), nên chênh lệch còn lại đến từ tầng sinh answer/judge (LLM non-deterministic), không phải từ dữ liệu — cần Role 1/3 xác nhận thêm ở tầng QA trước khi tuyên bố "repair thành công hoàn toàn". Đây là giới hạn được ghi nhận, không tô hồng.
+`retrieval_hit_rate` phục hồi 1.00 (bằng baseline), và các metric tổng hợp khác cũng trở về đúng baseline artifact hiện có. Điều này cho thấy repair đã đưa hệ thống trở lại trạng thái baseline của run hiện tại; các điểm yếu còn lại là hạn chế vốn có của baseline chứ không phải do corruption sau repair.
 
 ---
 
