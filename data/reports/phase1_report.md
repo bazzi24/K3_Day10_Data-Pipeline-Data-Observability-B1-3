@@ -3,7 +3,7 @@
 ## 1. Executive Summary & Source Ingestion
 - **Source API:** Crossref REST API
 - **Search Query:** `agentic retrieval augmented generation large language model`
-- **Raw Records Ingested:** 25
+- **Raw Records Ingested:** 24
 - **Clean Records Modeled:** 24
 
 ## 2. RAG Baseline Performance Metrics
@@ -12,9 +12,9 @@ Evaluation conducted on fixed frozen test set (10 samples):
 | Metric | Baseline Score | Target / Ideal | Status |
 | :--- | :--- | :--- | :--- |
 | **Retrieval Hit Rate** | `100.00%` | >= 80.0% | PASS |
-| **Mean Token F1** | `1.0000` | Higher is better | OK |
-| **LLM Judge Accuracy** | `100.00%` | >= 70.0% | PASS |
-| **Mean Judge Score** | `5.00 / 5.0` | >= 3.50 | PASS |
+| **Mean Token F1** | `0.3703` | Higher is better | OK |
+| **LLM Judge Accuracy** | `30.00%` | >= 70.0% | ATTENTION |
+| **Mean Judge Score** | `2.20 / 5.0` | >= 3.50 | ATTENTION |
 
 ## 3. Data Observability & Quality Signals
 
