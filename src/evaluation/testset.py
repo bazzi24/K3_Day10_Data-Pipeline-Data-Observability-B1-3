@@ -11,7 +11,7 @@ def build_test_set(df: pd.DataFrame, output_path: str | Path) -> list[dict[str, 
 
     Yêu cầu:
     1. Kiểm tra số lượng document tối thiểu.
-    2. Chọn các paper đại diện.
+    2. Chọn các paper đại diện từ cleaned dataframe.
     3. Tạo nhiều loại câu hỏi: summary, authors, date, categories.
     4. Mỗi row gồm: id, question_type, question, ground_truth, ground_truth_doc_ids.
     5. Ghi file JSON vào output_path.
@@ -77,4 +77,3 @@ def build_test_set(df: pd.DataFrame, output_path: str | Path) -> list[dict[str, 
     out_p = Path(output_path)
     write_json(out_p, test_set)
     return test_set
-
