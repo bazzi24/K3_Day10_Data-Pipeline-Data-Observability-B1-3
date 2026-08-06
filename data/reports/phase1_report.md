@@ -12,9 +12,9 @@ Evaluation conducted on fixed frozen test set (10 samples):
 | Metric | Baseline Score | Target / Ideal | Status |
 | :--- | :--- | :--- | :--- |
 | **Retrieval Hit Rate** | `100.00%` | >= 80.0% | PASS |
-| **Mean Token F1** | `0.8800` | Higher is better | OK |
+| **Mean Token F1** | `1.0000` | Higher is better | OK |
 | **LLM Judge Accuracy** | `100.00%` | >= 70.0% | PASS |
-| **Mean Judge Score** | `4.70 / 5.0` | >= 3.50 | PASS |
+| **Mean Judge Score** | `5.00 / 5.0` | >= 3.50 | PASS |
 
 ## 3. Data Observability & Quality Signals
 
