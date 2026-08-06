@@ -1,0 +1,24 @@
+{
+  "report_name": "baseline_quality",
+  "status": "PASS",
+  "total_rows": 24,
+  "metrics": {
+    "null_paper_ids": 0,
+    "duplicate_paper_ids": 0,
+    "null_titles": 0,
+    "null_summaries": 0,
+    "short_summaries": 0,
+    "stale_rows": 0,
+    "freshness_threshold_days": 180
+  },
+  "checks": {
+    "row_count_sufficient": true,
+    "paper_id_no_nulls": true,
+    "paper_id_unique": true,
+    "title_no_nulls": true,
+    "summary_no_nulls": true,
+    "summary_adequate_length": true,
+    "freshness_valid": true
+  },
+  "failed_rules": []
+}
