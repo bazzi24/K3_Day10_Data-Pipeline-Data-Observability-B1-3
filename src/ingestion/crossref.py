@@ -124,7 +124,12 @@ def parse_crossref_payload(payload: dict) -> list[PaperRecord]:
         categories = _extract_categories(item)
         primary_category = categories[0] if categories else ""
 
-        published = _extract_date_parts(item.get("published-print")) or _extract_date_parts(item.get("published-online"))
+        published = (
+            _extract_date_parts(item.get("published-online"))
+            or _extract_date_parts(item.get("published"))
+            or _extract_date_parts(item.get("issued"))
+            or _extract_date_parts(item.get("published-print"))
+        )
         updated = _extract_date_parts(item.get("updated")) or published
         if not published:
             published = _extract_date_parts(item.get("created")) or _extract_date_parts(item.get("issued")) or ""
