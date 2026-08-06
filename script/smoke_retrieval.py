@@ -117,6 +117,17 @@ def main() -> None:
         answer = run_agent_question(agent, question)
         print("\nAGENT ANSWER")
         print(answer)
+        print("\nAGENT CHECK")
+        print(
+            json.dumps(
+                {
+                    "contains_paper_id": sample_paper_id in answer,
+                    "contains_title": sample_title in answer,
+                    "contains_tool_like_prefix": "paper_id:" in answer and "title:" in answer,
+                },
+                indent=2,
+            )
+        )
     except Exception as exc:
         print("\nAGENT SKIPPED")
         print(f"{type(exc).__name__}: {exc}")

@@ -1,7 +1,7 @@
 {
   "backend": "chroma",
   "embedding_model": "text-embedding-3-small",
-  "persist_path": "/media/bazzi/Bazzi/AIA-K3/K3_Day10_Data-Pipeline-Data-Observability-B1-3/data/chroma",
+  "persist_path": "C:\\AI-in-action\\Study\\Lab\\K3_Day10_Data-Pipeline-Data-Observability-B1-3\\data\\chroma",
   "collection_name": "papers-baseline",
   "documents": [
     {
