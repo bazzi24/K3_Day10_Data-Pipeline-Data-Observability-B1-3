@@ -21,6 +21,14 @@ class SearchResult:
     metadata: dict[str, Any]
 
 
+@dataclass(frozen=True)
+class LocalIndexConfig:
+    collection_name: str
+    persist_path: Path
+    embeddings_output_path: Path | None
+    input_path: Path | None
+
+
 class LocalEmbeddingIndex:
     def __init__(
         self,
@@ -34,7 +42,7 @@ class LocalEmbeddingIndex:
         self.documents = documents
         self.persist_path = persist_path
         self.embedding_backend = "chroma"
-        self.embedding_model = MiniLMEmbeddings(settings.embedding_model)
+        self.embedding_model = MiniLMEmbeddings(settings.embedding_model, settings.openai_api_key or "")
         self.client = chromadb.PersistentClient(path=str(persist_path))
         self.collection = self.client.get_collection(name=collection_name)
         self.documents_by_paper_id = {document["paper_id"].lower(): document for document in documents}
@@ -81,18 +89,34 @@ class LocalEmbeddingIndex:
         return safe_slug(embeddings_output_path.stem)
 
     @classmethod
+    def prepare_config(
+        cls,
+        settings: Settings,
+        clean_path: Path | None = None,
+        embeddings_output_path: Path | None = None,
+    ) -> LocalIndexConfig:
+        collection_name = cls._derive_collection_name(settings, embeddings_output_path)
+        return LocalIndexConfig(
+            collection_name=collection_name,
+            persist_path=settings.paths.chroma_dir,
+            embeddings_output_path=embeddings_output_path or settings.paths.embeddings_json,
+            input_path=clean_path,
+        )
+
+    @classmethod
     def build(
         cls,
         df: pd.DataFrame,
         settings: Settings,
         embeddings_output_path: Path | None = None,
     ) -> "LocalEmbeddingIndex":
-        collection_name = cls._derive_collection_name(settings, embeddings_output_path)
+        config = cls.prepare_config(settings, embeddings_output_path=embeddings_output_path)
+        collection_name = config.collection_name
         documents = cls._build_documents(df)
-        persist_path = settings.paths.chroma_dir
+        persist_path = config.persist_path
         persist_path.mkdir(parents=True, exist_ok=True)
 
-        embedding_model = MiniLMEmbeddings(settings.embedding_model)
+        embedding_model = MiniLMEmbeddings(settings.embedding_model, settings.openai_api_key or "")
         client = chromadb.PersistentClient(path=str(persist_path))
         try:
             client.delete_collection(name=collection_name)
@@ -110,7 +134,7 @@ class LocalEmbeddingIndex:
             metadatas=[document["metadata"] for document in documents],
         )
 
-        manifest_path = embeddings_output_path or settings.paths.embeddings_json
+        manifest_path = config.embeddings_output_path
         write_json(
             manifest_path,
             {
