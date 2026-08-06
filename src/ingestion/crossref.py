@@ -130,7 +130,13 @@ def parse_crossref_payload(payload: dict) -> list[PaperRecord]:
             or _extract_date_parts(item.get("issued"))
             or _extract_date_parts(item.get("published-print"))
         )
-        updated = _extract_date_parts(item.get("updated")) or published
+        updated = (
+            _extract_date_parts(item.get("updated"))
+            or _extract_date_parts(item.get("indexed"))
+            or _extract_date_parts(item.get("deposited"))
+            or _extract_date_parts(item.get("created"))
+            or published
+        )
         if not published:
             published = _extract_date_parts(item.get("created")) or _extract_date_parts(item.get("issued")) or ""
         if not updated:
