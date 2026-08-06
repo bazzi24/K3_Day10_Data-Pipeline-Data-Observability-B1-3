@@ -13,9 +13,9 @@
 
 | STT | Họ và tên | MSSV | Vai trò chính | Module/deliverable sở hữu |
 | --: | --- | --- | --- | --- |
-| 1 | Phùng Văn Đạt | 2A202602012 | Role 1: Điều phối pipeline | `src/core/`, `src/pipelines/`, baseline orchestration, demo/release |
+| 1 | Chưa cung cấp trong repo | Chưa cung cấp | Role 1: Điều phối pipeline | `src/core/`, `src/pipelines/`, baseline orchestration, demo/release |
 | 2 | Chưa cung cấp trong repo | Chưa cung cấp | Role 2: Nền tảng dữ liệu & recovery | `src/ingestion/`, `data/raw/`, `data/clean/` |
-| 3 | Chưa cung cấp trong repo | Chưa cung cấp | Role 3: RAG & agent | `src/retrieval/`, `data/embeddings/` |
+| 3 | Vũ Quang Tùng | 2A202601545 | Role 3: RAG & agent | `src/retrieval/`, `data/embeddings/` |
 | 4 | Nguyễn Trọng Dũng | 2A202601965 | Role 4: Evaluation & observability | `src/evaluation/`, `src/observability/`, `data/eval/`, `data/quality/`, `data/reports/` |
 
 ## 2. Tóm tắt kết quả

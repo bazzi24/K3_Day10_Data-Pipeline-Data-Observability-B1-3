@@ -179,5 +179,5 @@ Neu evaluation set khong duoc freeze, hoac neu quality/freshness khong duoc do t
 - [x] Bao cao khong chua `.env`, API key, token hoac secret.
 - [x] Bao cao nay khong phai ban sao nguyen van cua bao cao nhom hoac bao cao thanh vien khac.
 
-**Ho va ten:** Chua cung cap trong repo  
+**Ho va ten:** Vũ Quang Tùng 
 **Ngay xac nhan:** 2026-08-06
