@@ -1,3 +1,6 @@
+from __future__ import annotations
+
+import json
 from pathlib import Path
 from typing import Any
 
@@ -11,13 +14,7 @@ def generate_phase1_report(
     quality: dict[str, Any],
     freshness: dict[str, Any],
 ) -> None:
-    """Viết markdown report cho baseline phase.
-
-    1. Gộp source summary.
-    2. In metrics retrieval/evaluation.
-    3. In data quality và freshness.
-    4. Ghi markdown vào report_path.
-    """
+    """Viết markdown report cho baseline phase."""
     total_raw = source_summary.get("total_raw_records", source_summary.get("total_records", "N/A"))
     total_clean = source_summary.get("total_clean_records", quality.get("total_rows", "N/A"))
 
@@ -48,10 +45,10 @@ Evaluation conducted on fixed frozen test set ({samples} samples):
 
 | Metric | Baseline Score | Target / Ideal | Status |
 | :--- | :--- | :--- | :--- |
-| **Retrieval Hit Rate** | `{hit_rate:.2%}` | >= 80.0% | {"✅ PASS" if hit_rate >= 0.8 else "⚠️ ATTENTION"} |
-| **Mean Token F1** | `{token_f1:.4f}` | Higher is better | ✅ OK |
-| **LLM Judge Accuracy** | `{judge_acc:.2%}` | >= 70.0% | {"✅ PASS" if judge_acc >= 0.7 else "⚠️ ATTENTION"} |
-| **Mean Judge Score** | `{judge_score:.2f} / 5.0` | >= 3.50 | {"✅ PASS" if judge_score >= 3.5 else "⚠️ ATTENTION"} |
+| **Retrieval Hit Rate** | `{hit_rate:.2%}` | >= 80.0% | {"PASS" if hit_rate >= 0.8 else "ATTENTION"} |
+| **Mean Token F1** | `{token_f1:.4f}` | Higher is better | OK |
+| **LLM Judge Accuracy** | `{judge_acc:.2%}` | >= 70.0% | {"PASS" if judge_acc >= 0.7 else "ATTENTION"} |
+| **Mean Judge Score** | `{judge_score:.2f} / 5.0` | >= 3.50 | {"PASS" if judge_score >= 3.5 else "ATTENTION"} |
 
 ## 3. Data Observability & Quality Signals
 
@@ -62,7 +59,7 @@ Evaluation conducted on fixed frozen test set ({samples} samples):
 - **Summary Length Threshold (>=100 chars):** {"PASS" if q_checks.get("summary_adequate_length") else "FAIL"}
 
 ### Data Freshness Monitoring
-- **Freshness Status:** {"✅ FRESH" if is_fresh else "⚠️ STALE DETECTED"}
+- **Freshness Status:** {"FRESH" if is_fresh else "STALE DETECTED"}
 - **Latest Published Date:** `{latest_pub}`
 - **Oldest Published Date:** `{oldest_pub}`
 - **Stale Records Count:** `{stale_rows}`
@@ -83,63 +80,77 @@ def generate_corruption_report(
     corrupted_freshness: dict[str, Any],
     repaired_freshness: dict[str, Any],
 ) -> None:
-    """Viết markdown report so sánh baseline/corrupted/repaired."""
-    b_hit = baseline_metrics.get("retrieval_hit_rate", 0.0)
-    c_hit = corrupted_metrics.get("retrieval_hit_rate", 0.0)
-    r_hit = repaired_metrics.get("retrieval_hit_rate", 0.0)
+    """Write an evidence-based baseline/corrupted/repaired comparison."""
+    metric_names = ("retrieval_hit_rate", "mean_token_f1", "judge_accuracy", "mean_judge_score")
 
-    b_f1 = baseline_metrics.get("mean_token_f1", 0.0)
-    c_f1 = corrupted_metrics.get("mean_token_f1", 0.0)
-    r_f1 = repaired_metrics.get("mean_token_f1", 0.0)
+    def number(payload: dict[str, Any], key: str) -> float | None:
+        value = payload.get(key)
+        return float(value) if isinstance(value, (int, float)) else None
 
-    b_judge_acc = baseline_metrics.get("judge_accuracy", 0.0)
-    c_judge_acc = corrupted_metrics.get("judge_accuracy", 0.0)
-    r_judge_acc = repaired_metrics.get("judge_accuracy", 0.0)
+    def fmt(value: float | None) -> str:
+        return "N/A" if value is None else f"{value:.4f}"
 
-    b_judge_score = baseline_metrics.get("mean_judge_score", 0.0)
-    c_judge_score = corrupted_metrics.get("mean_judge_score", 0.0)
-    r_judge_score = repaired_metrics.get("mean_judge_score", 0.0)
+    rows = []
+    for name in metric_names:
+        baseline = number(baseline_metrics, name)
+        corrupted = number(corrupted_metrics, name)
+        repaired = number(repaired_metrics, name)
+        degradation = None if baseline is None or corrupted is None else corrupted - baseline
+        recovery = None if repaired is None or corrupted is None else repaired - corrupted
+        rows.append(
+            f"| `{name}` | {fmt(baseline)} | {fmt(corrupted)} | {fmt(repaired)} "
+            f"| {fmt(degradation)} | {fmt(recovery)} |"
+        )
 
-    c_q_status = corrupted_quality.get("status", "FAIL")
-    r_q_status = repaired_quality.get("status", "PASS")
+    def json_block(payload: dict[str, Any]) -> str:
+        return json.dumps(payload, indent=2, ensure_ascii=False, default=str)
 
-    c_stale = corrupted_freshness.get("stale_rows", 0)
-    r_stale = repaired_freshness.get("stale_rows", 0)
+    report = f"""# Corruption and Repair Comparison Report
 
-    md = f"""# Data Pipeline Observability: Corruption & Recovery Impact Report
+## Experiment contract
 
-## 1. Executive Summary
-This report analyzes the impact of controlled data corruption on RAG retrieval accuracy and answer quality, and demonstrates pipeline restoration using saved raw snapshots (`data/raw/crossref_records.json`).
+- Baseline, corrupted and repaired states use the same evaluation set and retrieval configuration.
+- Corrupted and repaired data are indexed in separate collections; baseline artifacts are not overwritten.
+- Repair is rebuilt from the saved raw records and the normal cleaning pipeline, not by editing answers or metrics.
 
-All three states (**Baseline**, **Corrupted**, **Repaired**) were evaluated against the exact same **Frozen Evaluation Set**.
+## Evaluation comparison
 
----
+| Metric | Baseline | Corrupted | Repaired | Corrupted - baseline | Repaired - corrupted |
+| --- | ---: | ---: | ---: | ---: | ---: |
+{chr(10).join(rows)}
 
-## 2. Three-State Comparative Metrics Table
+A negative `Corrupted - baseline` value indicates degradation for these higher-is-better metrics. A positive
+`Repaired - corrupted` value indicates recovery. Exact recovery is not guaranteed when ranking contains ties or
+when an external judge is non-deterministic; the answer artifacts should be inspected before drawing conclusions.
 
-| Metric / Signal | Baseline State | Corrupted State | Repaired State | Recovery Delta (Repaired vs Corrupted) |
-| :--- | :--- | :--- | :--- | :--- |
-| **Retrieval Hit Rate** | `{b_hit:.2%}` | `{c_hit:.2%}` | `{r_hit:.2%}` | **`{r_hit - c_hit:+.2%}`** |
-| **Mean Token F1** | `{b_f1:.4f}` | `{c_f1:.4f}` | `{r_f1:.4f}` | **`{r_f1 - c_f1:+.4f}`** |
-| **LLM Judge Accuracy** | `{b_judge_acc:.2%}` | `{c_judge_acc:.2%}` | `{r_judge_acc:.2%}` | **`{r_judge_acc - c_judge_acc:+.2%}`** |
-| **Mean Judge Score** | `{b_judge_score:.2f}` | `{c_judge_score:.2f}` | `{r_judge_score:.2f}` | **`{r_judge_score - c_judge_score:+.2f}`** |
-| **Data Quality Status** | `PASS` | `{c_q_status}` | `{r_q_status}` | **Restored to PASS** |
-| **Stale / Malformed Rows** | `0` | `{c_stale}` | `{r_stale}` | **Cleared** |
+## Corrupted data quality
 
----
+```json
+{json_block(corrupted_quality)}
+```
 
-## 3. Observability & Causality Analysis
+## Repaired data quality
 
-### A. Corruption Impact
-- **Observability Signal:** Data quality checks shifted to `{c_q_status}` due to blank summaries, truncated text, duplicate IDs, or stale publication dates.
-- **RAG System Impact:** Retrieval hit rate dropped from `{b_hit:.2%}` to `{c_hit:.2%}` because corrupted embeddings degraded vector similarity search. Consequently, answer accuracy dropped.
+```json
+{json_block(repaired_quality)}
+```
 
-### B. Repair & Restoration Mechanism
-- **Recovery Strategy:** Pipeline ETL was executed from saved raw snapshots (`crossref_records.json`), re-applying deterministic cleaning logic without re-fetching external APIs.
-- **Outcome:** Quality checks returned to `{r_q_status}`, and retrieval performance recovered to `{r_hit:.2%}` (Token F1: `{r_f1:.4f}`).
+## Corrupted freshness
 
----
-*Report generated automatically by Data Observability Pipeline.*
+```json
+{json_block(corrupted_freshness)}
+```
+
+## Repaired freshness
+
+```json
+{json_block(repaired_freshness)}
+```
+
+## Evidence and interpretation
+
+Use `data/results/corruption_log.json` to trace each injected defect to its paper IDs. Detailed retrieval hits,
+answers and judge results are stored separately for corrupted and repaired states under `data/results/`.
+Conclusions should only claim an impact when the metric delta or answer-level evidence above supports it.
 """
-    write_text(Path(report_path), md)
-
+    write_text(Path(report_path), report)
