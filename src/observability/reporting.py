@@ -15,8 +15,8 @@ def generate_phase1_report(
     freshness: dict[str, Any],
 ) -> None:
     """Viết markdown report cho baseline phase."""
-    total_raw = source_summary.get("total_raw_records", source_summary.get("total_records", "N/A"))
-    total_clean = source_summary.get("total_clean_records", quality.get("total_rows", "N/A"))
+    total_raw = source_summary.get("total_raw_records", source_summary.get("raw_records", source_summary.get("total_records", "N/A")))
+    total_clean = source_summary.get("total_clean_records", source_summary.get("clean_rows", quality.get("total_rows", "N/A")))
 
     hit_rate = metrics.get("retrieval_hit_rate", 0.0)
     token_f1 = metrics.get("mean_token_f1", 0.0)
@@ -36,7 +36,7 @@ def generate_phase1_report(
 
 ## 1. Executive Summary & Source Ingestion
 - **Source API:** {source_summary.get("source_api", "Crossref REST API")}
-- **Search Query:** `{source_summary.get("query", "N/A")}`
+- **Search Query:** `{source_summary.get("query", source_summary.get("source_query", "N/A"))}`
 - **Raw Records Ingested:** {total_raw}
 - **Clean Records Modeled:** {total_clean}
 
