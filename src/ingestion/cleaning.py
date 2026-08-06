@@ -31,6 +31,9 @@ def _normalize_text(value: str | None) -> str:
         return ""
     cleaned = re.sub(r"<[^>]+>", " ", str(value))
     cleaned = cleaned.replace("\n", " ")
+    cleaned = normalize_whitespace(cleaned)
+    if cleaned.startswith("['") and cleaned.endswith("']"):
+        cleaned = cleaned[2:-2]
     return normalize_whitespace(cleaned)
 
 
